@@ -112,11 +112,6 @@ export default {
   height: 100%;
 }
 
-.wrapper__viewport {
-  width: 95%;
-  height: 85%;
-}
-
 .wrapper__container {
   display: flex;
   height: 100%;
@@ -128,9 +123,5 @@ export default {
 
 .wrapper__footer-part:not(:first-child) {
   margin-left: 100px;
-}
-
-.wrapper__configuration {
-
 }
 </style>

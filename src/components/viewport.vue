@@ -19,6 +19,8 @@ export default {
   watch: {
     objects: {
       handler(objects) {
+        console.log('objects');
+        console.log(objects);
         this.removeAllObjects()
         Object.values(objects).forEach(({object}) => {
           this.scene.add(object)
@@ -31,14 +33,10 @@ export default {
     removeAllObjects() {
       for (let i = this.scene.children.length -1; i >= 0; i--) {
         let obj = this.scene.children[i];
-        console.log(i);
-        console.log(obj);
         if (obj.type !== 'PerspectiveCamera') {
           this.scene.remove(obj);
         }
       }
-      console.log('finish');
-      console.log(this.scene.children);
     }
   }
 }
