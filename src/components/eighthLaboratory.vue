@@ -24,7 +24,7 @@ export default {
     Vue.set(
       this.$data.objects,
       'kochSnowflake',
-      new KochSnowflake({points: [{z: -5, y: -2.5}, {z: 5, y: -2.5}, {z: 0, y: 5}], depth: 3})
+      new KochSnowflake({points: [{z: -5, y: -2.5}, {z: 5, y: -2.5}, {z: 0, y: 5}], depth: 2})
     )
   },
   methods: {}

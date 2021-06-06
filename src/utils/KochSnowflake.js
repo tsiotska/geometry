@@ -1,8 +1,99 @@
 import * as THREE from "three";
 
 export default class KochSnowflake {
-  constructor({points, depth}) {
-    this.drawFract(points, depth)
+  constructor({/*points,*/ depth}) {
+    this.SNOWFLAKE_ITERATIONS = depth
+    this.SNOWFLAKE_SIZE = 3;
+    this.SNOWFLAKE_CHILD_SCALE = 1 / 3;
+    const t1Side = this.SNOWFLAKE_SIZE;
+    const t2Side = t1Side * this.SNOWFLAKE_CHILD_SCALE;
+
+    const t1Height = this.triangleHeight(t1Side);
+    const t2Height = this.triangleHeight(t2Side);
+
+    const snowFlakeHeight = t1Height + t2Height;
+    const base = new Point(5.0, t2Height - snowFlakeHeight / 2);
+
+    const t1Dir = new Point(0.0, 0.0);
+    //const t2Dir = new Point(0.0, -1.0);
+
+    this.drawFract(base, t1Dir, t1Side, this.SNOWFLAKE_ITERATIONS);
+    // this.drawFract(base, t2Dir, t2Side, this.SNOWFLAKE_ITERATIONS - 1);
+  }
+
+  drawFract(base, dir, side, iterations) {
+    const triangle = this.calcTriangle(base, dir, side);
+    console.log('triangle');
+    console.log(triangle);
+
+
+    if (iterations === 1) {
+      this.drawTriangle(triangle)
+    } else {
+      const leftVert = new Point(triangle[0].z, triangle[0].y);
+      const rightVert = new Point(triangle[1].z, triangle[1].y);
+      const topVert = new Point(triangle[2].z, triangle[2].y);
+
+      const leftBase = this.midpoint(leftVert, topVert);
+      const leftDir = new Point(topVert.z, topVert.y)
+      leftDir.minus(leftVert)
+      leftDir.rotate90DegreesCCW()
+      leftDir.normalize();
+      this.drawFract(leftBase, leftDir, side * this.SNOWFLAKE_CHILD_SCALE, iterations - 1);
+
+      const rightBase = this.midpoint(rightVert, topVert);
+      const rightDir = new Point(topVert.z, topVert.y)
+      rightDir.minus(rightVert)
+      rightDir.rotate90DegreesCW()
+      rightDir.normalize();
+      this.drawFract(rightBase, rightDir, side * this.SNOWFLAKE_CHILD_SCALE, iterations - 1);
+    }
+  }
+
+  calcTriangle(base, {z, y}, side) {
+    const height = this.triangleHeight(side);
+
+    const leftVert = new Point(z, y)
+
+    leftVert.plus(base);
+    leftVert.scale(side / 2)
+    leftVert.rotate90DegreesCCW()
+
+    const rightVert = new Point(z, y)
+
+    rightVert.scale(side / 2)
+    rightVert.plus(base);
+    rightVert.rotate90DegreesCW()
+
+    const topVert = new Point(z, y)
+    topVert.plus(base);
+    topVert.scale(height)
+
+    return [
+      {z: leftVert.z, y: leftVert.y},
+      {z: rightVert.z, y: rightVert.y},
+      {z: topVert.z, y: topVert.y}
+    ];
+  }
+
+  triangleHeight(side) {
+    return Math.sqrt(3) / 2 * side;
+  }
+
+  midpoint(v, w) {
+    const midpoint = new Point(v.x, v.y)
+    midpoint.plus(w)
+    midpoint.scale(1 / 2)
+    return midpoint
+  }
+
+  getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
   }
 
   drawTriangle(points) {
@@ -17,64 +108,44 @@ export default class KochSnowflake {
 
     this.object = this.object?.add(line) || line
   }
+}
 
-  drawFract(points, depth) {
-    if (depth > 0) {
-
-      const pA = {
-          z: (points[1].z - points[0].z) / 3 + points[0].z,
-          y: (points[1].y - points[0].y) / 3 + points[0].y,
-        },
-        pB = {
-          z: (points[1].z - points[0].z) * 2 / 3 + points[0].z,
-          y: (points[1].y - points[0].y) * 2 / 3 + points[0].y,
-        },
-        pC = {
-          z: (points[1].z - points[0].z) / 2 + points[0].z,
-          y: (points[1].y - points[0].y) / 2  + points[0].y * 2,
-        };
-
-      const p2A = {
-          z: points[1].z,
-          y: (points[2].y - points[1].y) * 2 / 3 + points[1].y
-        },
-        p2B = {
-          z: (points[2].z - points[1].z) / 3 + points[1].z,
-          y: (points[2].y - points[1].y) / 3 + points[1].y,
-        },
-        p2C = {
-          z: (points[2].z - points[1].z) * 2 / 3 + points[1].z,
-          y: (points[2].y - points[1].y) * 2 / 3 + points[1].y,
-        };
-
-      const p3A = {
-          z: points[0].z,
-          y: (points[2].y - points[0].y) * 2 / 3 + points[0].y
-        },
-        p3B = {
-          z: (points[2].z - points[0].z) / 3 + points[0].z,
-          y: (points[2].y - points[0].y) / 3 + points[0].y,
-        },
-        p3C = {
-          z: (points[2].z - points[0].z) * 2 / 3 + points[0].z,
-          y: (points[2].y - points[0].y) * 2 / 3 + points[0].y,
-        };
-
-      this.drawFract([pA, pB, pC], depth - 1)
-      this.drawFract([p2A, p2B, p2C], depth - 1)
-      this.drawFract([p3A, p3B, p3C], depth - 1)
-      this.drawTriangle(points)
-    } else {
-      //  this.drawTriangle(points)
-    }
+class Point {
+  constructor(z, y) {
+    this.z = z || 0
+    this.y = y || 0
   }
 
-  getRandomColor() {
-    const letters = '0123456789ABCDEF';
-    let color = '#';
-    for (let i = 0; i < 6; i++) {
-      color += letters[Math.floor(Math.random() * 16)];
-    }
-    return color;
+  plus(w) {
+    this.z += w.z;
+    this.y += w.y
+  }
+
+  minus(w) {
+    this.z -= w.z
+    this.y -= w.y
+  }
+
+  scale(a) {
+    this.z *= a
+    this.y *= a
+  }
+
+  rotate90DegreesCW() {
+    this.z = -this.z
+  }
+
+  rotate90DegreesCCW() {
+    this.y = -this.y
+  }
+
+  normalize() {
+    this.scale(1 / this.length());
+  }
+
+  length() {
+    return Math.sqrt(this.z * this.z + this.y * this.y);
   }
 }
+
+

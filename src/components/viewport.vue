@@ -19,8 +19,6 @@ export default {
   watch: {
     objects: {
       handler(objects) {
-        console.log('objects');
-        console.log(objects);
         this.removeAllObjects()
         Object.values(objects).forEach(({object}) => {
           this.scene.add(object)
